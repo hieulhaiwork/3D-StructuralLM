@@ -17,7 +17,7 @@ except FileNotFoundError:
     print(f"LỖI: Không tìm thấy thư mục dataset tại '{BASE_DATASET_PATH}'. Vui lòng kiểm tra lại đường dẫn.")
     SCENE_FILE_PATHS = []
 
-OUTPUT_FILE_PATH = Path("./scenegraph_dataset_for_finetuning_v2.json")
+OUTPUT_FILE_PATH = Path("./scenegraph_dataset_for_finetuning_v1.json")
 
 # ---------PROCESSING CONFIGS----------
 # Objects to be detected
