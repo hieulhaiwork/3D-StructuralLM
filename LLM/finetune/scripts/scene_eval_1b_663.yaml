@@ -1,0 +1,18 @@
+### model
+model_name_or_path: meta-llama/Llama-3.2-1B
+adapter_name_or_path:   # where your LoRA is
+trust_remote_code: true
+
+### method
+stage: predict
+finetuning_type: lora
+
+### dataset
+dataset: valid_dataset.json
+dataset_format: alpaca
+template: llama3
+cutoff_len: 2048
+
+### output
+output_dir: eval_outputs
+overwrite_output_dir: true
