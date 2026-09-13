@@ -1,0 +1,52 @@
+# --- Data Configuration ---
+data:
+  processed_path: "data/synthetic_data_merged_1234.pt"
+  train_val_split: 0.8
+
+# --- Model Architecture ---
+model:
+  num_classes: 37  
+  embedding_dim: 64       
+  edge_in_dim: 9         
+  hidden_dim: 256
+  num_heads: 4
+
+  num_gat_layers: 4
+  room_scale: 2.0
+  dropout_rate: 0.1       
+
+# --- Training Configuration ---
+training:
+  device: "cuda"
+  epochs: 150             
+  batch_size: 64          
+  learning_rate: 0.001    
+  weight_decay: 0.0001
+  
+  # Phase 1 (Base training):
+  pos_loss_weight: 5.0       
+  rot_loss_weight: 5.0        
+  collision_loss_weight: 5.0  
+  geometric_loss_weight: 2.0  
+
+  checkpoint_path: "checkpoints/model_phase1234.pt"
+  early_stopping_patience: 20
+  early_stopping_min_delta: 0.0001
+
+# --- Fine-tuning Configuration (Phase 2) ---
+finetune:
+  enabled: false                              
+  pretrained_checkpoint: "checkpoints/model_phase1.pt"  # Checkpoint to load
+  freeze_layers: 0                            
+  
+  # Phase 2 hyperparameters (override training config when enabled)
+  epochs: 150
+  learning_rate: 0.0005                       
+  batch_size: 64
+  collision_loss_weight: 5.0 
+  geometric_loss_weight: 2.0
+  pos_loss_weight: 5.0
+  rot_loss_weight: 5.0
+  checkpoint_path: "checkpoints/model_phase2.pt"
+
+seed: 42

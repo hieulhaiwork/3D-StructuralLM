@@ -1,0 +1,107 @@
+{
+  "nodes": [
+    {
+      "id": "dining_table",
+      "name": "dining table",
+      "category": "object",
+      "label": "Table",
+      "attributes": {
+        "material": "wooden",
+        "dimensions_m": {
+          "width_m": 1.8,
+          "height_m": 0.75,
+          "depth_m": 0.9
+        },
+        "room_scaled_dim": {
+          "width": 0.5142857142857143,
+          "height": 0.27777777777777773,
+          "depth": 0.225
+        }
+      }
+    },
+    {
+      "id": "glass",
+      "name": "glass",
+      "category": "object",
+      "label": "Other",
+      "attributes": {
+        "material": "glass",
+        "dimensions_m": {
+          "width_m": 0.1,
+          "height_m": 0.2,
+          "depth_m": 0.1
+        },
+        "room_scaled_dim": {
+          "width": 0.028571428571428574,
+          "height": 0.07407407407407407,
+          "depth": 0.025
+        }
+      }
+    },
+    {
+      "id": "chair_1",
+      "name": "chair",
+      "category": "object",
+      "label": "Chair",
+      "attributes": {
+        "material": "wooden",
+        "dimensions_m": {
+          "width_m": 0.6,
+          "height_m": 0.9,
+          "depth_m": 0.6
+        },
+        "room_scaled_dim": {
+          "width": 0.17142857142857143,
+          "height": 0.3333333333333333,
+          "depth": 0.15
+        }
+      }
+    },
+    {
+      "id": "chair_2",
+      "name": "chair",
+      "category": "object",
+      "label": "Chair",
+      "attributes": {
+        "material": "wooden",
+        "dimensions_m": {
+          "width_m": 0.6,
+          "height_m": 0.9,
+          "depth_m": 0.6
+        },
+        "room_scaled_dim": {
+          "width": 0.17142857142857143,
+          "height": 0.3333333333333333,
+          "depth": 0.15
+        }
+      }
+    }
+  ],
+  "edges": [
+    {
+      "source": "glass",
+      "target": "dining_table",
+      "relation": "under"
+    },
+    {
+      "source": "chair_1",
+      "target": "dining_table",
+      "relation": "left_of"
+    },
+    {
+      "source": "chair_2",
+      "target": "dining_table",
+      "relation": "left_of"
+    }
+  ],
+  "metadata": {
+    "original_prompt": "a dining table with a glass under and two chairs beside",
+    "plan": "To process the given scene prompt, the following internal plan will be executed:\n* The Entity Extraction Agent will identify the main objects in the scene, including the dining table, glass, and chairs.\n* The Entity Extraction Agent will also determine the total number of entities present in the scene.\n* The Attribute Extraction Agent will extract attributes from each entity, such as the material of the table, the type of glass, and the style of the chairs.\n* The Relational Inference Agent will analyze the relationships between entities, including the position of the glass under the table and the chairs beside the table.\n* The Relational Inference Agent will infer any implicit relationships, such as the table being a gathering place for the chairs.\n* The Attribute Enrichment Agent will add additional details to the extracted attributes, such as the color or shape of the entities.\n* The Size & Scale Estimation Agent will estimate the size and scale of each entity relative to the others, including the height of the table and the width of the chairs.\n* The Size & Scale Estimation Agent will also consider the standard sizes of similar entities to inform its estimates.\n* The Graph Formalization Agent will construct a formal graph representation of the scene, incorporating the extracted entities, attributes, and relationships.\n* The Graph Formalization Agent will ensure the graph is structured and consistent, ready for further processing or visualization.\n* The plan will be executed in a sequential manner, with each agent building upon the output of the previous agent to create a comprehensive representation of the scene.",
+    "room_dimensions_m": {
+      "width_m": 3.5,
+      "height_m": 2.7,
+      "depth_m": 4.0
+    },
+    "notes": "Graph formalization completed successfully."
+  }
+}

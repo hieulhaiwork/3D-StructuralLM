@@ -1,0 +1,105 @@
+{
+  "objects": [
+    {
+      "id": 0,
+      "name": "Table_0",
+      "label": "Table",
+      "normalized_bounding_box": [
+        0.5142857142857143,
+        0.27777777777777773,
+        0.225
+      ],
+      "normalized_relative_center": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "rot": [
+        1.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "id": 1,
+      "name": "Chair_1",
+      "label": "Chair",
+      "normalized_bounding_box": [
+        0.17142857142857143,
+        0.3333333333333333,
+        0.15
+      ],
+      "normalized_relative_center": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "rot": [
+        1.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "id": 2,
+      "name": "Chair_1_2",
+      "label": "Chair_1",
+      "normalized_bounding_box": [
+        0.17142857142857143,
+        0.3333333333333333,
+        0.15
+      ],
+      "normalized_relative_center": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "rot": [
+        1.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "id": 3,
+      "name": "Other_3",
+      "label": "Other",
+      "normalized_bounding_box": [
+        0.028571428571428574,
+        0.07407407407407407,
+        0.025
+      ],
+      "normalized_relative_center": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "rot": [
+        1.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    }
+  ],
+  "relationships": [
+    {
+      "obj_id1": 3,
+      "obj_id2": 0,
+      "relation": "under"
+    },
+    {
+      "obj_id1": 1,
+      "obj_id2": 0,
+      "relation": "left_of"
+    },
+    {
+      "obj_id1": 2,
+      "obj_id2": 0,
+      "relation": "left_of"
+    }
+  ]
+}

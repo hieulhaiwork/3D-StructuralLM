@@ -1,0 +1,716 @@
+{
+  "planner": {
+    "system_prompt": "You are the PLANNING AGENT in a multi-step scene graph pipeline.\n\nYour job:\n- Analyze the user's scene prompt.\n- Produce a concise INTERNAL plan describing what each downstream agent must do.\n- You MUST describe the work of the following agents:\n  1. Entity Extraction Agent\n  2. Attribute Extraction Agent\n  3. Relational Inference Agent\n  4. Attribute Enrichment Agent\n  5. Size & Scale Estimation Agent\n  6. Graph Formalization Agent\n\nRules:\n- Do NOT perform extraction or inference yourself.\n- Do NOT output JSON.\n- Output plain text only.\n- Use bullet points.\n- This plan is NOT shown to the end user; format it for internal logic clarity.\n- Keep it under 12 bullet points.\n",
+    "input": {
+      "user_prompt": "a dining table with a glass under and two chairs beside",
+      "effective_prompt": "a dining table with a glass under and two chairs beside"
+    },
+    "output": {
+      "plan_notes": "To process the given scene prompt, the following internal plan will be executed:\n* The Entity Extraction Agent will identify the main objects in the scene, including the dining table, glass, and chairs.\n* The Entity Extraction Agent will also determine the total number of entities present in the scene.\n* The Attribute Extraction Agent will extract attributes from each entity, such as the material of the table, the type of glass, and the style of the chairs.\n* The Relational Inference Agent will analyze the relationships between entities, including the position of the glass under the table and the chairs beside the table.\n* The Relational Inference Agent will infer any implicit relationships, such as the table being a gathering place for the chairs.\n* The Attribute Enrichment Agent will add additional details to the extracted attributes, such as the color or shape of the entities.\n* The Size & Scale Estimation Agent will estimate the size and scale of each entity relative to the others, including the height of the table and the width of the chairs.\n* The Size & Scale Estimation Agent will also consider the standard sizes of similar entities to inform its estimates.\n* The Graph Formalization Agent will construct a formal graph representation of the scene, incorporating the extracted entities, attributes, and relationships.\n* The Graph Formalization Agent will ensure the graph is structured and consistent, ready for further processing or visualization.\n* The plan will be executed in a sequential manner, with each agent building upon the output of the previous agent to create a comprehensive representation of the scene.",
+      "blueprint_after": {
+        "nodes": [],
+        "edges": [],
+        "metadata": {
+          "original_prompt": "a dining table with a glass under and two chairs beside",
+          "plan": "To process the given scene prompt, the following internal plan will be executed:\n* The Entity Extraction Agent will identify the main objects in the scene, including the dining table, glass, and chairs.\n* The Entity Extraction Agent will also determine the total number of entities present in the scene.\n* The Attribute Extraction Agent will extract attributes from each entity, such as the material of the table, the type of glass, and the style of the chairs.\n* The Relational Inference Agent will analyze the relationships between entities, including the position of the glass under the table and the chairs beside the table.\n* The Relational Inference Agent will infer any implicit relationships, such as the table being a gathering place for the chairs.\n* The Attribute Enrichment Agent will add additional details to the extracted attributes, such as the color or shape of the entities.\n* The Size & Scale Estimation Agent will estimate the size and scale of each entity relative to the others, including the height of the table and the width of the chairs.\n* The Size & Scale Estimation Agent will also consider the standard sizes of similar entities to inform its estimates.\n* The Graph Formalization Agent will construct a formal graph representation of the scene, incorporating the extracted entities, attributes, and relationships.\n* The Graph Formalization Agent will ensure the graph is structured and consistent, ready for further processing or visualization.\n* The plan will be executed in a sequential manner, with each agent building upon the output of the previous agent to create a comprehensive representation of the scene."
+        }
+      }
+    }
+  },
+  "entity_extraction": {
+    "system_prompt": "You are the ENTITY EXTRACTION AGENT in a multi-stage scene graph system.\n\nYour job:\nGiven the user's prompt (which may already be enriched):\n1. Identify ALL DISTINCT, PHYSICAL entities in the scene.\n   Entities include:\n     - Characters / people\n     - Animals\n     - Physical objects (bed, duvet, lamp, chair, desk, curtain, etc.)\n     - Furniture (treated as objects)\n     - Structural elements that are explicitly referred to (window, door, wall, floor)\n     - Lighting elements (lamp, ceiling light, bedside lamp, sunlight through a window)\n2. IMPORTANT: Do NOT create a node for the overall scene container.\n   - Do NOT create nodes for generic scene/room labels such as:\n     \"bedroom\", \"living room\", \"kitchen\", \"room\", \"scene\", \"environment\".\n   - Assume the entire prompt already describes one room/scene; the room type\n     will be captured later as an attribute, NOT as an entity node.\n3. Each entity MUST correspond to a grounded, tangible item in the prompt.\n\nHandling counts and multiple instances:\n- If the prompt explicitly mentions multiple copies of the same object,\n  you MUST create a SEPARATE node for EACH instance.\n  Examples:\n    - \"two bedside tables\" -> two nodes (e.g. \"bedside_table_left\", \"bedside_table_right\"\n      if positions are mentioned, otherwise \"bedside_table_1\", \"bedside_table_2\").\n    - \"three chairs around the table\" -> three distinct chair nodes.\n- If the prompt distinguishes instances by position or role (left/right, near/far, front/back),\n  reflect that in the id or name (e.g. \"lamp_left\", \"lamp_right\").\n\nLABEL classification:\n- For each node you MUST add a `label` field.\n- `label` MUST be EXACTLY one of the following strings (case-sensitive),\n  or \"Other\":\n\n  [Armchair, Banana, Basket, Bed, Cabinet, Cake, Carpet, Chair, Cup,\n   Easel, Fan, Fridge, Floor_lamp, Laptop_close, Laptop_open, Lighting,\n   Mirror, Monkey, Panda, Piano, Picture, Pier, Pillow, Rabbit, Sofa,\n   TV, Table, Test, Toy, Tree, Vase, Wardrobe, Washingmachine,\n   human_lying, human_sitting, human_standing, Other]\n\n- Choose the label based on what the entity IS:\n  - If it clearly matches one of the items above, use that label:\n    - \"a red sofa\" → label: \"Sofa\"\n    - \"a rug\" or \"carpet\" → label: \"Carpet\"\n    - \"a floor lamp\" → label: \"Floor_lamp\"\n    - \"a TV\" → label: \"TV\"\n    - \"a pillow\" → label: \"Pillow\"\n  - For human / humanoid characters:\n    - If the text indicates posture, you MAY use:\n      - \"human_sitting\" (e.g. \"an astronaut sitting on the sofa\")\n      - \"human_standing\"\n      - \"human_lying\"\n    - Otherwise, if posture is unclear, you may still use \"Other\".\n  - If no label in the list fits well, set `label` to \"Other\":\n    - \"a computer\" → name: \"computer\", label: \"Other\"\n    - \"astronaut\" with no desire to treat as a posture class → label: \"Other\".\n\nVERY IMPORTANT – how to set `name`:\n- `name` is the human-readable NOUN PHRASE for the entity (e.g. \"sofa\", \"coffee table\").\n- You MUST NOT include visual adjectives (color, size, style, material) in `name`.\n  These belong to attributes later, NOT in `name`.\n\n  Correct:\n    - Prompt: \"a red sofa\" → name: \"sofa\", label: \"Sofa\"\n    - Prompt: \"a small wooden coffee table\" → name: \"coffee table\", label: \"Table\"\n    - Prompt: \"a cozy fabric armchair\" → name: \"armchair\", label: \"Armchair\"\n\n  Incorrect (DO NOT DO THIS):\n    - name: \"red sofa\"\n    - name: \"small wooden coffee table\"\n    - name: \"cozy fabric armchair\"\n\n- Multi-word names are fine if they are part of the base noun (e.g. \"coffee table\",\n  \"bedside table\", \"floor lamp\") but still without adjectives.\n\nThings to AVOID as nodes:\n  - Adjectives (“red”, “cozy”, “simple”, “wooden”) → NOT entities.\n    These will be handled later as attributes.\n  - Actions (“sitting”, “holding”, “lying”) → NOT entities.\n  - Generic room/scene labels (“bedroom”, “living room”) → NOT entities.\n  - Duplicate references (“the desk”, “a small desk”) → one or more nodes\n    only if the prompt clearly indicates multiple distinct instances.\n\nYou MUST output STRICT JSON:\n\n{\n  \"nodes\": [\n    {\n      \"id\": \"short_snake_case_identifier\",\n      \"name\": \"human-readable name WITHOUT adjectives\",\n      \"category\": \"character|object|environment|lighting|other\",\n      \"label\": \"Armchair|Banana|Basket|Bed|Cabinet|Cake|Carpet|Chair|Cup|Easel|Fan|Fridge|Floor_lamp|Laptop_close|Laptop_open|Lighting|Mirror|Monkey|Panda|Piano|Picture|Pier|Pillow|Rabbit|Sofa|TV|Table|Test|Toy|Tree|Vase|Wardrobe|Washingmachine|human_lying|human_sitting|human_standing|Other\"\n    }\n  ]\n}\n\nCategory guidelines:\n- Use \"character\" for humans, humanoids, or characters (including astronauts).\n- Use \"object\" for furniture, small items, movable objects.\n- Use \"environment\" for structural elements like walls, floor, ceiling, window, door.\n- Use \"lighting\" for explicit light sources (lamps, ceiling light, sunlight).\n- Use \"other\" only when none of the above fits.\n\nRules:\n- `id` must be deterministic and unique (lowercase_snake_case).\n- `name` must match how a human refers to the object, but with adjectives removed.\n- Do NOT include attributes (color, material, style) in `name`.\n- Do NOT infer relational meaning (no \"on top of\" here).\n- Do NOT include comments or text outside the JSON.\n",
+    "input": {
+      "prompt": "a dining table with a glass under and two chairs beside"
+    },
+    "output": {
+      "nodes": [
+        {
+          "id": "dining_table",
+          "name": "dining table",
+          "category": "object",
+          "label": "Table"
+        },
+        {
+          "id": "glass",
+          "name": "glass",
+          "category": "object",
+          "label": "Other"
+        },
+        {
+          "id": "chair_1",
+          "name": "chair",
+          "category": "object",
+          "label": "Chair"
+        },
+        {
+          "id": "chair_2",
+          "name": "chair",
+          "category": "object",
+          "label": "Chair"
+        }
+      ],
+      "blueprint_after": {
+        "nodes": [
+          {
+            "id": "dining_table",
+            "name": "dining table",
+            "category": "object",
+            "label": "Table"
+          },
+          {
+            "id": "glass",
+            "name": "glass",
+            "category": "object",
+            "label": "Other"
+          },
+          {
+            "id": "chair_1",
+            "name": "chair",
+            "category": "object",
+            "label": "Chair"
+          },
+          {
+            "id": "chair_2",
+            "name": "chair",
+            "category": "object",
+            "label": "Chair"
+          }
+        ],
+        "edges": [],
+        "metadata": {
+          "original_prompt": "a dining table with a glass under and two chairs beside",
+          "plan": "To process the given scene prompt, the following internal plan will be executed:\n* The Entity Extraction Agent will identify the main objects in the scene, including the dining table, glass, and chairs.\n* The Entity Extraction Agent will also determine the total number of entities present in the scene.\n* The Attribute Extraction Agent will extract attributes from each entity, such as the material of the table, the type of glass, and the style of the chairs.\n* The Relational Inference Agent will analyze the relationships between entities, including the position of the glass under the table and the chairs beside the table.\n* The Relational Inference Agent will infer any implicit relationships, such as the table being a gathering place for the chairs.\n* The Attribute Enrichment Agent will add additional details to the extracted attributes, such as the color or shape of the entities.\n* The Size & Scale Estimation Agent will estimate the size and scale of each entity relative to the others, including the height of the table and the width of the chairs.\n* The Size & Scale Estimation Agent will also consider the standard sizes of similar entities to inform its estimates.\n* The Graph Formalization Agent will construct a formal graph representation of the scene, incorporating the extracted entities, attributes, and relationships.\n* The Graph Formalization Agent will ensure the graph is structured and consistent, ready for further processing or visualization.\n* The plan will be executed in a sequential manner, with each agent building upon the output of the previous agent to create a comprehensive representation of the scene."
+        }
+      }
+    }
+  },
+  "attribute_extraction": {
+    "system_prompt": "You are the ATTRIBUTE EXTRACTION AGENT in a multi-stage scene graph system.\n\nInputs:\n- A natural language scene description (original or enriched).\n- A list of nodes, each with: id, name, category.\n\nYour task:\nFor EACH node, infer and assign the following visual attributes when possible:\n  - color: basic color name (e.g. \"red\", \"blue\", \"green\", \"white\", \"black\",\n    \"brown\", \"gray\", \"beige\"). If unknown, use null.\n  - material: simple material category in adjective form (e.g. \"wooden\", \"fabric\", \"metal\",\n    \"glass\", \"plastic\", \"leather\"). If unknown, use null.\n  - style: simple style descriptor (e.g. \"modern\", \"simple\", \"classic\",\n    \"old\", \"minimalist\", \"cozy\"). If unknown, use null.\n\nVERY IMPORTANT:\n- The `name` field provided by the Entity Extraction Agent should already be\n  a clean noun phrase without adjectives. You MUST NOT modify it here.\n- If the description uses phrases like \"red sofa\" or \"small wooden coffee table\":\n  - color → \"red\"\n  - material → \"wooden\"\n  - style → maybe \"cozy\" or \"modern\" if explicitly described.\n- Do NOT duplicate adjectives across fields or invent multiple conflicting colors.\n  Pick the single best color/material/style if several are mentioned.\n\nRules:\n- You MUST preserve all node ids exactly as given.\n- Use information from the description FIRST (explicit colors, materials, styles).\n- You MAY make reasonable inferences when not explicitly stated, but keep them plausible\n  for the object type (e.g. a \"sofa\" might plausibly be \"fabric\", a \"wooden table\"\n  must be material \"wooden\").\n- If you are not confident, prefer null over hallucinated detail.\n\nOutput format:\nYou MUST output STRICT JSON with this exact structure:\n\n{\n  \"nodes\": [\n    {\n      \"id\": \"<existing_node_id>\",\n      \"attributes\": {\n        \"color\": \"red|null|...\",\n        \"material\": \"wooden|fabric|metal|glass|plastic|leather|null\",\n        \"style\": \"modern|simple|classic|old|minimalist|cozy|null\"\n      }\n    }\n  ]\n}\n\nRequirements:\n- Include EVERY input node id exactly once in the \"nodes\" list.\n- Do NOT include extra nodes.\n- Do NOT rename nodes or change their categories.\n- No comments or text outside the JSON.\n",
+    "input": {
+      "prompt": "a dining table with a glass under and two chairs beside",
+      "nodes_before": [
+        {
+          "id": "dining_table",
+          "name": "dining table",
+          "category": "object",
+          "label": "Table",
+          "attributes": {
+            "material": "wooden"
+          }
+        },
+        {
+          "id": "glass",
+          "name": "glass",
+          "category": "object",
+          "label": "Other",
+          "attributes": {
+            "material": "glass"
+          }
+        },
+        {
+          "id": "chair_1",
+          "name": "chair",
+          "category": "object",
+          "label": "Chair",
+          "attributes": {
+            "material": "wooden"
+          }
+        },
+        {
+          "id": "chair_2",
+          "name": "chair",
+          "category": "object",
+          "label": "Chair",
+          "attributes": {
+            "material": "wooden"
+          }
+        }
+      ]
+    },
+    "output": {
+      "nodes_after": [
+        {
+          "id": "dining_table",
+          "name": "dining table",
+          "category": "object",
+          "label": "Table",
+          "attributes": {
+            "material": "wooden"
+          }
+        },
+        {
+          "id": "glass",
+          "name": "glass",
+          "category": "object",
+          "label": "Other",
+          "attributes": {
+            "material": "glass"
+          }
+        },
+        {
+          "id": "chair_1",
+          "name": "chair",
+          "category": "object",
+          "label": "Chair",
+          "attributes": {
+            "material": "wooden"
+          }
+        },
+        {
+          "id": "chair_2",
+          "name": "chair",
+          "category": "object",
+          "label": "Chair",
+          "attributes": {
+            "material": "wooden"
+          }
+        }
+      ],
+      "blueprint_after": {
+        "nodes": [
+          {
+            "id": "dining_table",
+            "name": "dining table",
+            "category": "object",
+            "label": "Table",
+            "attributes": {
+              "material": "wooden"
+            }
+          },
+          {
+            "id": "glass",
+            "name": "glass",
+            "category": "object",
+            "label": "Other",
+            "attributes": {
+              "material": "glass"
+            }
+          },
+          {
+            "id": "chair_1",
+            "name": "chair",
+            "category": "object",
+            "label": "Chair",
+            "attributes": {
+              "material": "wooden"
+            }
+          },
+          {
+            "id": "chair_2",
+            "name": "chair",
+            "category": "object",
+            "label": "Chair",
+            "attributes": {
+              "material": "wooden"
+            }
+          }
+        ],
+        "edges": [],
+        "metadata": {
+          "original_prompt": "a dining table with a glass under and two chairs beside",
+          "plan": "To process the given scene prompt, the following internal plan will be executed:\n* The Entity Extraction Agent will identify the main objects in the scene, including the dining table, glass, and chairs.\n* The Entity Extraction Agent will also determine the total number of entities present in the scene.\n* The Attribute Extraction Agent will extract attributes from each entity, such as the material of the table, the type of glass, and the style of the chairs.\n* The Relational Inference Agent will analyze the relationships between entities, including the position of the glass under the table and the chairs beside the table.\n* The Relational Inference Agent will infer any implicit relationships, such as the table being a gathering place for the chairs.\n* The Attribute Enrichment Agent will add additional details to the extracted attributes, such as the color or shape of the entities.\n* The Size & Scale Estimation Agent will estimate the size and scale of each entity relative to the others, including the height of the table and the width of the chairs.\n* The Size & Scale Estimation Agent will also consider the standard sizes of similar entities to inform its estimates.\n* The Graph Formalization Agent will construct a formal graph representation of the scene, incorporating the extracted entities, attributes, and relationships.\n* The Graph Formalization Agent will ensure the graph is structured and consistent, ready for further processing or visualization.\n* The plan will be executed in a sequential manner, with each agent building upon the output of the previous agent to create a comprehensive representation of the scene."
+        }
+      }
+    }
+  },
+  "relational_inference": {
+    "system_prompt": "You are the RELATIONAL INFERENCE AGENT.\n\nInputs:\n- Original user prompt\n- List of extracted scene nodes (id + name + category)\n\nYour task:\nInfer ALL EXPLICIT and IMPLICIT spatial relationships between entities.\n\nYou must:\n1. Identify directional relations (A → B).\n2. Normalize relations to this set ONLY (exact strings):\n\n   - on_top_of\n   - above\n   - under\n   - left_of\n   - right_of\n   - in_front_of\n   - behind\n\n   You MUST NOT output any other relation name.\n   In particular, you MUST NOT output: \"next_to\", \"beside\", \"near\", \"close_to\", \"around\", \"adjacent_to\", or any custom string.\n\n─────────────────────────────────────────────────────────\nHOW TO SELECT THE CORRECT RELATION\n─────────────────────────────────────────────────────────\n\n**Support / contact vs vertical distance**\n\n- Use **on_top_of** ONLY when one object is clearly resting directly on the surface of another:\n  - Natural language cues: \"on\", \"on top of\", \"resting on\", \"sitting on\", \"lying on\", \"placed on\".\n  - Example: \"a lamp on the table\" → lamp on_top_of table.\n\n- Use **above / under** ONLY for vertical separation without direct support/contact:\n  - \"above\", \"over\", \"hanging above\", \"floating above\", \"below\", \"underneath\" (without implying it is resting on).\n  - Example: \"a ceiling lamp above the table\" → lamp above table.\n  - Example: \"a rug under the table\" → rug under table.\n\n**Depth (front/back)**\n\n- Use **in_front_of / behind** ONLY for front/back (depth) relationships:\n  - Phrases: \"in front of\", \"in front\", \"ahead of\" → in_front_of.\n  - Phrases: \"behind\", \"at the back of\", \"at the back\" → behind.\n  - Example: \"a coffee table in front of the sofa\" →\n    - source: coffee_table\n    - target: sofa\n    - relation: \"in_front_of\".\n  - Do NOT map \"in front of\" to \"above\" or \"on_top_of\".\n\n**Left/right & 'next to' / 'beside' / 'near'**\n\n- Use **left_of / right_of** for left/right relationships:\n  - Phrases: \"to the left of\", \"on the left side of\" → left_of.\n  - Phrases: \"to the right of\", \"on the right side of\" → right_of.\n\n- VERY IMPORTANT: The relation name **\"next_to\" is forbidden**.\n  You MUST NEVER output `\"next_to\"` as a relation.\n\n- When the language says \"next to\", \"beside\", \"near to\", \"close to\", \"by\", or \"at the side of\"\n  but does NOT specify left or right, you MUST still choose **left_of** or **right_of**.\n\n  Deterministic default rule (to avoid None or invalid relations):\n  - For a phrase of the form: \"A next to B\", \"A beside B\", \"A near B\":\n    - Use: A left_of B\n    - That is: source = A, target = B, relation = \"left_of\".\n  - If the wording is reversed (e.g. \"B has A next to it\"), you still choose:\n    - source = A (the neighbor), target = B, relation = \"left_of\".\n\n  Examples:\n  - \"a lamp next to the bed\" →\n    - source: lamp\n    - target: bed\n    - relation: \"left_of\".\n  - \"a chair beside the table\" →\n    - source: chair\n    - target: table\n    - relation: \"left_of\".\n\n**Facing / looking**\n\n- Use **facing** when one object is oriented towards another:\n  - Phrases: \"facing\", \"looking at\", \"turned towards\".\n  - Example: \"a sofa facing the TV\" → sofa facing TV.\n\n**Containment / inside**\n\n- Use **in** when one object is clearly inside or contained within another:\n  - Phrases: \"in\", \"inside\", \"within\", \"inside of\".\n  - Example: \"a cup in the cabinet\" → cup in cabinet.\n\n─────────────────────────────────────────────────────────\nOUTPUT FORMAT\n─────────────────────────────────────────────────────────\n\nYour output MUST be STRICT JSON:\n\n{\n  \"edges\": [\n    {\n      \"source\": \"<node_id>\",\n      \"target\": \"<node_id>\",\n      \"relation\": \"on_top_of|above|under|left_of|right_of|in_front_of|behind|facing|in\"\n    }\n  ]\n}\n\nRules:\n- Use ONLY node IDs that actually exist in the node list.\n- Relations MUST be directional where appropriate:\n  - \"A in_front_of B\" is different from \"B in_front_of A\".\n- Relations MUST be one of the allowed relation names ONLY.\n- Never duplicate edges (no exact duplicates of source+target+relation).\n- If NO relations can be grounded from the text, return: {\"edges\": []}\n- You MUST NOT output any free text or comments outside the JSON.\n",
+    "input": {
+      "prompt": "a dining table with a glass under and two chairs beside",
+      "nodes": [
+        {
+          "id": "dining_table",
+          "name": "dining table",
+          "category": "object",
+          "label": "Table",
+          "attributes": {
+            "material": "wooden"
+          }
+        },
+        {
+          "id": "glass",
+          "name": "glass",
+          "category": "object",
+          "label": "Other",
+          "attributes": {
+            "material": "glass"
+          }
+        },
+        {
+          "id": "chair_1",
+          "name": "chair",
+          "category": "object",
+          "label": "Chair",
+          "attributes": {
+            "material": "wooden"
+          }
+        },
+        {
+          "id": "chair_2",
+          "name": "chair",
+          "category": "object",
+          "label": "Chair",
+          "attributes": {
+            "material": "wooden"
+          }
+        }
+      ]
+    },
+    "output": {
+      "edges": [
+        {
+          "source": "glass",
+          "target": "dining_table",
+          "relation": "under"
+        },
+        {
+          "source": "chair_1",
+          "target": "dining_table",
+          "relation": "left_of"
+        },
+        {
+          "source": "chair_2",
+          "target": "dining_table",
+          "relation": "left_of"
+        }
+      ],
+      "blueprint_after": {
+        "nodes": [
+          {
+            "id": "dining_table",
+            "name": "dining table",
+            "category": "object",
+            "label": "Table",
+            "attributes": {
+              "material": "wooden"
+            }
+          },
+          {
+            "id": "glass",
+            "name": "glass",
+            "category": "object",
+            "label": "Other",
+            "attributes": {
+              "material": "glass"
+            }
+          },
+          {
+            "id": "chair_1",
+            "name": "chair",
+            "category": "object",
+            "label": "Chair",
+            "attributes": {
+              "material": "wooden"
+            }
+          },
+          {
+            "id": "chair_2",
+            "name": "chair",
+            "category": "object",
+            "label": "Chair",
+            "attributes": {
+              "material": "wooden"
+            }
+          }
+        ],
+        "edges": [
+          {
+            "source": "glass",
+            "target": "dining_table",
+            "relation": "under"
+          },
+          {
+            "source": "chair_1",
+            "target": "dining_table",
+            "relation": "left_of"
+          },
+          {
+            "source": "chair_2",
+            "target": "dining_table",
+            "relation": "left_of"
+          }
+        ],
+        "metadata": {
+          "original_prompt": "a dining table with a glass under and two chairs beside",
+          "plan": "To process the given scene prompt, the following internal plan will be executed:\n* The Entity Extraction Agent will identify the main objects in the scene, including the dining table, glass, and chairs.\n* The Entity Extraction Agent will also determine the total number of entities present in the scene.\n* The Attribute Extraction Agent will extract attributes from each entity, such as the material of the table, the type of glass, and the style of the chairs.\n* The Relational Inference Agent will analyze the relationships between entities, including the position of the glass under the table and the chairs beside the table.\n* The Relational Inference Agent will infer any implicit relationships, such as the table being a gathering place for the chairs.\n* The Attribute Enrichment Agent will add additional details to the extracted attributes, such as the color or shape of the entities.\n* The Size & Scale Estimation Agent will estimate the size and scale of each entity relative to the others, including the height of the table and the width of the chairs.\n* The Size & Scale Estimation Agent will also consider the standard sizes of similar entities to inform its estimates.\n* The Graph Formalization Agent will construct a formal graph representation of the scene, incorporating the extracted entities, attributes, and relationships.\n* The Graph Formalization Agent will ensure the graph is structured and consistent, ready for further processing or visualization.\n* The plan will be executed in a sequential manner, with each agent building upon the output of the previous agent to create a comprehensive representation of the scene."
+        }
+      }
+    }
+  },
+  "size_scale_estimation": {
+    "system_prompt": "You are the Size & Scale Estimation Agent.\n\nYour tasks:\n\n1. For EVERY node in blueprint[\"nodes\"], ensure:\n   node[\"attributes\"][\"dimensions_m\"] = {\n     \"width_m\":  <float, meters>,\n     \"height_m\": <float, meters>,\n     \"depth_m\":  <float, meters>\n   }\n\n2. Use the ANCHOR OBJECT as a key reference for relative size\n   (e.g. if it's a sofa, other furniture must be sized consistently):\n\n   ANCHOR OBJECT ID: \"dining_table\"\n\n3. Estimate the OVERALL ROOM size and write it into:\n   blueprint[\"metadata\"][\"room_dimensions_m\"] = {\n     \"width_m\":  <float, meters>,  # horizontal extent (left-right)\n     \"height_m\": <float, meters>,  # floor to ceiling\n     \"depth_m\":  <float, meters>   # front-back\n   }\n\n4. Dimensions must be physically plausible:\n   - Humans typically ~1.6–2.0m tall.\n   - Sofas typically ~1.8–2.5m wide.\n   - Coffee tables typically ~0.8–1.2m long.\n   - Rooms typically 2.4–3.0m tall, 2.5–6.0m wide, etc.\n\n5. Keep all nodes, edges, and existing metadata fields.\n   Only adjust numeric dimension values to make the scene realistic.\n\nYou MUST return the FULL blueprint JSON with this structure:\n\n{\n  \"nodes\": [...],\n  \"edges\": [...],\n  \"metadata\": { ... }\n}\n\nNo comments or extra text.",
+    "input": {
+      "prompt": "a dining table with a glass under and two chairs beside",
+      "blueprint_before": {
+        "nodes": [
+          {
+            "id": "dining_table",
+            "name": "dining table",
+            "category": "object",
+            "label": "Table",
+            "attributes": {
+              "material": "wooden",
+              "dimensions_m": {
+                "width_m": 1.0,
+                "height_m": 1.0,
+                "depth_m": 1.0
+              }
+            }
+          },
+          {
+            "id": "glass",
+            "name": "glass",
+            "category": "object",
+            "label": "Other",
+            "attributes": {
+              "material": "glass",
+              "dimensions_m": {
+                "width_m": 1.0,
+                "height_m": 1.0,
+                "depth_m": 1.0
+              }
+            }
+          },
+          {
+            "id": "chair_1",
+            "name": "chair",
+            "category": "object",
+            "label": "Chair",
+            "attributes": {
+              "material": "wooden",
+              "dimensions_m": {
+                "width_m": 1.0,
+                "height_m": 1.0,
+                "depth_m": 1.0
+              }
+            }
+          },
+          {
+            "id": "chair_2",
+            "name": "chair",
+            "category": "object",
+            "label": "Chair",
+            "attributes": {
+              "material": "wooden",
+              "dimensions_m": {
+                "width_m": 1.0,
+                "height_m": 1.0,
+                "depth_m": 1.0
+              }
+            }
+          }
+        ],
+        "edges": [
+          {
+            "source": "glass",
+            "target": "dining_table",
+            "relation": "under"
+          },
+          {
+            "source": "chair_1",
+            "target": "dining_table",
+            "relation": "left_of"
+          },
+          {
+            "source": "chair_2",
+            "target": "dining_table",
+            "relation": "left_of"
+          }
+        ],
+        "metadata": {
+          "original_prompt": "a dining table with a glass under and two chairs beside",
+          "plan": "To process the given scene prompt, the following internal plan will be executed:\n* The Entity Extraction Agent will identify the main objects in the scene, including the dining table, glass, and chairs.\n* The Entity Extraction Agent will also determine the total number of entities present in the scene.\n* The Attribute Extraction Agent will extract attributes from each entity, such as the material of the table, the type of glass, and the style of the chairs.\n* The Relational Inference Agent will analyze the relationships between entities, including the position of the glass under the table and the chairs beside the table.\n* The Relational Inference Agent will infer any implicit relationships, such as the table being a gathering place for the chairs.\n* The Attribute Enrichment Agent will add additional details to the extracted attributes, such as the color or shape of the entities.\n* The Size & Scale Estimation Agent will estimate the size and scale of each entity relative to the others, including the height of the table and the width of the chairs.\n* The Size & Scale Estimation Agent will also consider the standard sizes of similar entities to inform its estimates.\n* The Graph Formalization Agent will construct a formal graph representation of the scene, incorporating the extracted entities, attributes, and relationships.\n* The Graph Formalization Agent will ensure the graph is structured and consistent, ready for further processing or visualization.\n* The plan will be executed in a sequential manner, with each agent building upon the output of the previous agent to create a comprehensive representation of the scene."
+        }
+      },
+      "anchor": "dining_table"
+    },
+    "output": {
+      "blueprint_after": {
+        "nodes": [
+          {
+            "id": "dining_table",
+            "name": "dining table",
+            "category": "object",
+            "label": "Table",
+            "attributes": {
+              "material": "wooden",
+              "dimensions_m": {
+                "width_m": 1.8,
+                "height_m": 0.75,
+                "depth_m": 0.9
+              }
+            }
+          },
+          {
+            "id": "glass",
+            "name": "glass",
+            "category": "object",
+            "label": "Other",
+            "attributes": {
+              "material": "glass",
+              "dimensions_m": {
+                "width_m": 0.1,
+                "height_m": 0.2,
+                "depth_m": 0.1
+              }
+            }
+          },
+          {
+            "id": "chair_1",
+            "name": "chair",
+            "category": "object",
+            "label": "Chair",
+            "attributes": {
+              "material": "wooden",
+              "dimensions_m": {
+                "width_m": 0.6,
+                "height_m": 0.9,
+                "depth_m": 0.6
+              }
+            }
+          },
+          {
+            "id": "chair_2",
+            "name": "chair",
+            "category": "object",
+            "label": "Chair",
+            "attributes": {
+              "material": "wooden",
+              "dimensions_m": {
+                "width_m": 0.6,
+                "height_m": 0.9,
+                "depth_m": 0.6
+              }
+            }
+          }
+        ],
+        "edges": [
+          {
+            "source": "glass",
+            "target": "dining_table",
+            "relation": "under"
+          },
+          {
+            "source": "chair_1",
+            "target": "dining_table",
+            "relation": "left_of"
+          },
+          {
+            "source": "chair_2",
+            "target": "dining_table",
+            "relation": "left_of"
+          }
+        ],
+        "metadata": {
+          "original_prompt": "a dining table with a glass under and two chairs beside",
+          "plan": "To process the given scene prompt, the following internal plan will be executed:\n* The Entity Extraction Agent will identify the main objects in the scene, including the dining table, glass, and chairs.\n* The Entity Extraction Agent will also determine the total number of entities present in the scene.\n* The Attribute Extraction Agent will extract attributes from each entity, such as the material of the table, the type of glass, and the style of the chairs.\n* The Relational Inference Agent will analyze the relationships between entities, including the position of the glass under the table and the chairs beside the table.\n* The Relational Inference Agent will infer any implicit relationships, such as the table being a gathering place for the chairs.\n* The Attribute Enrichment Agent will add additional details to the extracted attributes, such as the color or shape of the entities.\n* The Size & Scale Estimation Agent will estimate the size and scale of each entity relative to the others, including the height of the table and the width of the chairs.\n* The Size & Scale Estimation Agent will also consider the standard sizes of similar entities to inform its estimates.\n* The Graph Formalization Agent will construct a formal graph representation of the scene, incorporating the extracted entities, attributes, and relationships.\n* The Graph Formalization Agent will ensure the graph is structured and consistent, ready for further processing or visualization.\n* The plan will be executed in a sequential manner, with each agent building upon the output of the previous agent to create a comprehensive representation of the scene.",
+          "room_dimensions_m": {
+            "width_m": 3.5,
+            "height_m": 2.7,
+            "depth_m": 4.0
+          }
+        }
+      }
+    }
+  },
+  "graph_formalization": {
+    "system_prompt": "You are the GRAPH FORMALIZATION AGENT.\n\nYour job:\nTransform the current blueprint into a FINAL, VALIDATED scene graph.\n\nYou MUST enforce EXACTLY this schema:\n\n{\n  \"nodes\": [\n    {\n      \"id\": \"string\",\n      \"name\": \"string\",\n      \"category\": \"character|object|environment|lighting|other\",\n      \"label\": \"Armchair|Banana|Basket|Bed|Cabinet|Cake|Carpet|Chair|Cup|Easel|Fan|Fridge|Floor_lamp|Laptop_close|Laptop_open|Lighting|Mirror|Monkey|Panda|Piano|Picture|Pier|Pillow|Rabbit|Sofa|TV|Table|Test|Toy|Tree|Vase|Wardrobe|Washingmachine|human_lying|human_sitting|human_standing|Other\",\n      \"attributes\": {}\n    }\n  ],\n  \"edges\": [\n    {\n      \"source\": \"node_id\",\n      \"target\": \"node_id\",\n      \"relation\": \"string\"\n    }\n  ],\n  \"metadata\": {\n    \"original_prompt\": \"string\",\n    \"plan\": \"string\",\n    \"notes\": \"optional string\"\n  }\n}\n\nRequirements:\n1. All nodes MUST include \"attributes\" (empty dict allowed).\n2. All nodes MUST include a \"label\":\n   - If the incoming blueprint node already has a label, copy it exactly.\n   - If a node has no label, set \"label\": \"Other\".\n   - Do NOT invent labels outside the allowed set.\n3. All attributes MUST be JSON-safe (no invalid structures).\n4. All edges MUST be valid: both source and target must exist.\n5. Keep metadata untouched, except adding \"notes\" if needed.\n6. NO additional top-level fields are allowed.\n7. Output STRICT JSON ONLY.\n",
+    "input": {
+      "blueprint_before": {
+        "nodes": [
+          {
+            "id": "dining_table",
+            "name": "dining table",
+            "category": "object",
+            "label": "Table",
+            "attributes": {
+              "material": "wooden",
+              "dimensions_m": {
+                "width_m": 1.8,
+                "height_m": 0.75,
+                "depth_m": 0.9
+              }
+            }
+          },
+          {
+            "id": "glass",
+            "name": "glass",
+            "category": "object",
+            "label": "Other",
+            "attributes": {
+              "material": "glass",
+              "dimensions_m": {
+                "width_m": 0.1,
+                "height_m": 0.2,
+                "depth_m": 0.1
+              }
+            }
+          },
+          {
+            "id": "chair_1",
+            "name": "chair",
+            "category": "object",
+            "label": "Chair",
+            "attributes": {
+              "material": "wooden",
+              "dimensions_m": {
+                "width_m": 0.6,
+                "height_m": 0.9,
+                "depth_m": 0.6
+              }
+            }
+          },
+          {
+            "id": "chair_2",
+            "name": "chair",
+            "category": "object",
+            "label": "Chair",
+            "attributes": {
+              "material": "wooden",
+              "dimensions_m": {
+                "width_m": 0.6,
+                "height_m": 0.9,
+                "depth_m": 0.6
+              }
+            }
+          }
+        ],
+        "edges": [
+          {
+            "source": "glass",
+            "target": "dining_table",
+            "relation": "under"
+          },
+          {
+            "source": "chair_1",
+            "target": "dining_table",
+            "relation": "left_of"
+          },
+          {
+            "source": "chair_2",
+            "target": "dining_table",
+            "relation": "left_of"
+          }
+        ],
+        "metadata": {
+          "original_prompt": "a dining table with a glass under and two chairs beside",
+          "plan": "To process the given scene prompt, the following internal plan will be executed:\n* The Entity Extraction Agent will identify the main objects in the scene, including the dining table, glass, and chairs.\n* The Entity Extraction Agent will also determine the total number of entities present in the scene.\n* The Attribute Extraction Agent will extract attributes from each entity, such as the material of the table, the type of glass, and the style of the chairs.\n* The Relational Inference Agent will analyze the relationships between entities, including the position of the glass under the table and the chairs beside the table.\n* The Relational Inference Agent will infer any implicit relationships, such as the table being a gathering place for the chairs.\n* The Attribute Enrichment Agent will add additional details to the extracted attributes, such as the color or shape of the entities.\n* The Size & Scale Estimation Agent will estimate the size and scale of each entity relative to the others, including the height of the table and the width of the chairs.\n* The Size & Scale Estimation Agent will also consider the standard sizes of similar entities to inform its estimates.\n* The Graph Formalization Agent will construct a formal graph representation of the scene, incorporating the extracted entities, attributes, and relationships.\n* The Graph Formalization Agent will ensure the graph is structured and consistent, ready for further processing or visualization.\n* The plan will be executed in a sequential manner, with each agent building upon the output of the previous agent to create a comprehensive representation of the scene.",
+          "room_dimensions_m": {
+            "width_m": 3.5,
+            "height_m": 2.7,
+            "depth_m": 4.0
+          }
+        }
+      }
+    },
+    "output": {
+      "scene_graph": {
+        "nodes": [
+          {
+            "id": "dining_table",
+            "name": "dining table",
+            "category": "object",
+            "label": "Table",
+            "attributes": {
+              "material": "wooden",
+              "dimensions_m": {
+                "width_m": 1.8,
+                "height_m": 0.75,
+                "depth_m": 0.9
+              },
+              "room_scaled_dim": {
+                "width": 0.5142857142857143,
+                "height": 0.27777777777777773,
+                "depth": 0.225
+              }
+            }
+          },
+          {
+            "id": "glass",
+            "name": "glass",
+            "category": "object",
+            "label": "Other",
+            "attributes": {
+              "material": "glass",
+              "dimensions_m": {
+                "width_m": 0.1,
+                "height_m": 0.2,
+                "depth_m": 0.1
+              },
+              "room_scaled_dim": {
+                "width": 0.028571428571428574,
+                "height": 0.07407407407407407,
+                "depth": 0.025
+              }
+            }
+          },
+          {
+            "id": "chair_1",
+            "name": "chair",
+            "category": "object",
+            "label": "Chair",
+            "attributes": {
+              "material": "wooden",
+              "dimensions_m": {
+                "width_m": 0.6,
+                "height_m": 0.9,
+                "depth_m": 0.6
+              },
+              "room_scaled_dim": {
+                "width": 0.17142857142857143,
+                "height": 0.3333333333333333,
+                "depth": 0.15
+              }
+            }
+          },
+          {
+            "id": "chair_2",
+            "name": "chair",
+            "category": "object",
+            "label": "Chair",
+            "attributes": {
+              "material": "wooden",
+              "dimensions_m": {
+                "width_m": 0.6,
+                "height_m": 0.9,
+                "depth_m": 0.6
+              },
+              "room_scaled_dim": {
+                "width": 0.17142857142857143,
+                "height": 0.3333333333333333,
+                "depth": 0.15
+              }
+            }
+          }
+        ],
+        "edges": [
+          {
+            "source": "glass",
+            "target": "dining_table",
+            "relation": "under"
+          },
+          {
+            "source": "chair_1",
+            "target": "dining_table",
+            "relation": "left_of"
+          },
+          {
+            "source": "chair_2",
+            "target": "dining_table",
+            "relation": "left_of"
+          }
+        ],
+        "metadata": {
+          "original_prompt": "a dining table with a glass under and two chairs beside",
+          "plan": "To process the given scene prompt, the following internal plan will be executed:\n* The Entity Extraction Agent will identify the main objects in the scene, including the dining table, glass, and chairs.\n* The Entity Extraction Agent will also determine the total number of entities present in the scene.\n* The Attribute Extraction Agent will extract attributes from each entity, such as the material of the table, the type of glass, and the style of the chairs.\n* The Relational Inference Agent will analyze the relationships between entities, including the position of the glass under the table and the chairs beside the table.\n* The Relational Inference Agent will infer any implicit relationships, such as the table being a gathering place for the chairs.\n* The Attribute Enrichment Agent will add additional details to the extracted attributes, such as the color or shape of the entities.\n* The Size & Scale Estimation Agent will estimate the size and scale of each entity relative to the others, including the height of the table and the width of the chairs.\n* The Size & Scale Estimation Agent will also consider the standard sizes of similar entities to inform its estimates.\n* The Graph Formalization Agent will construct a formal graph representation of the scene, incorporating the extracted entities, attributes, and relationships.\n* The Graph Formalization Agent will ensure the graph is structured and consistent, ready for further processing or visualization.\n* The plan will be executed in a sequential manner, with each agent building upon the output of the previous agent to create a comprehensive representation of the scene.",
+          "room_dimensions_m": {
+            "width_m": 3.5,
+            "height_m": 2.7,
+            "depth_m": 4.0
+          },
+          "notes": "Graph formalization completed successfully."
+        }
+      }
+    }
+  }
+}

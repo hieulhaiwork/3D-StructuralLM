@@ -1,0 +1,204 @@
+{
+  "objects": [
+    {
+      "id": "dining_table",
+      "index": 0,
+      "label": "Table",
+      "category": "object",
+      "prompt": "wooden dining table",
+      "bounding_box": [
+        2.0571428571428574,
+        0.6944444444444443,
+        0.675
+      ],
+      "center": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "rotation": [
+        0.44322437047958374,
+        -0.000893372343853116,
+        -0.8964101672172546,
+        -0.000193899089936167
+      ],
+      "attributes": {
+        "material": "wooden",
+        "dimensions_m": {
+          "width_m": 1.8,
+          "height_m": 0.75,
+          "depth_m": 0.9
+        },
+        "room_scaled_dim": {
+          "width": 0.5142857142857143,
+          "height": 0.27777777777777773,
+          "depth": 0.225
+        }
+      },
+      "mesh": {
+        "obj": "/workspace/structuralm/temp/2025-12-10_21-42-36/dreamfusion/Table.obj",
+        "mtl": "/workspace/structuralm/temp/2025-12-10_21-42-36/dreamfusion/Table.mtl"
+      }
+    },
+    {
+      "id": "chair_1",
+      "index": 1,
+      "label": "Chair",
+      "category": "object",
+      "prompt": "wooden chair",
+      "bounding_box": [
+        0.6857142857142857,
+        0.8333333333333333,
+        0.44999999999999996
+      ],
+      "center": [
+        -0.0040854159742593765,
+        0.059647709131240845,
+        -1.1479425430297852
+      ],
+      "rotation": [
+        0.7153995633125305,
+        -0.00012063952453900129,
+        -0.6987154483795166,
+        0.0001588596060173586
+      ],
+      "attributes": {
+        "material": "wooden",
+        "dimensions_m": {
+          "width_m": 0.6,
+          "height_m": 0.9,
+          "depth_m": 0.6
+        },
+        "room_scaled_dim": {
+          "width": 0.17142857142857143,
+          "height": 0.3333333333333333,
+          "depth": 0.15
+        }
+      },
+      "mesh": {
+        "obj": "/workspace/structuralm/temp/2025-12-10_21-42-36/dreamfusion/Chair.obj",
+        "mtl": "/workspace/structuralm/temp/2025-12-10_21-42-36/dreamfusion/Chair.mtl"
+      }
+    },
+    {
+      "id": "chair_2",
+      "index": 2,
+      "label": "Chair_1",
+      "category": "object",
+      "prompt": "wooden chair",
+      "bounding_box": [
+        0.6857142857142857,
+        0.8333333333333333,
+        0.44999999999999996
+      ],
+      "center": [
+        -0.0009569590911269188,
+        0.475030355155468,
+        -0.7250719517469406
+      ],
+      "rotation": [
+        0.75715367943048477,
+        0.0016565646510571241,
+        0.7983628392219543,
+        0.001563403639011085
+      ],
+      "attributes": {
+        "material": "wooden",
+        "dimensions_m": {
+          "width_m": 0.6,
+          "height_m": 0.9,
+          "depth_m": 0.6
+        },
+        "room_scaled_dim": {
+          "width": 0.17142857142857143,
+          "height": 0.3333333333333333,
+          "depth": 0.15
+        }
+      },
+      "mesh": {
+        "obj": "/workspace/structuralm/temp/2025-12-10_21-42-36/dreamfusion/Chair_1.obj",
+        "mtl": "/workspace/structuralm/temp/2025-12-10_21-42-36/dreamfusion/Chair_1.mtl"
+      }
+    },
+    {
+      "id": "glass",
+      "index": 3,
+      "label": "Other",
+      "category": "object",
+      "prompt": "glass glass",
+      "bounding_box": [
+        0.1142857142857143,
+        0.18518518518518517,
+        0.07500000000000001
+      ],
+      "center": [
+        0.0017155623063445091,
+        -0.08557884953916073,
+        -0.0013132727472111583
+      ],
+      "rotation": [
+        0.9525258421897888,
+        0.08469449728727341,
+        0.0529184222221375,
+        0.01227264292538166
+      ],
+      "attributes": {
+        "material": "glass",
+        "dimensions_m": {
+          "width_m": 0.1,
+          "height_m": 0.2,
+          "depth_m": 0.1
+        },
+        "room_scaled_dim": {
+          "width": 0.028571428571428574,
+          "height": 0.07407407407407407,
+          "depth": 0.025
+        }
+      },
+      "mesh": {
+        "obj": "/workspace/structuralm/temp/2025-12-10_21-42-36/dreamfusion/Other.obj",
+        "mtl": "/workspace/structuralm/temp/2025-12-10_21-42-36/dreamfusion/Other.mtl"
+      }
+    }
+  ],
+  "relationships": [
+    {
+      "source_index": 3,
+      "target_index": 0,
+      "source_id": "glass",
+      "target_id": "dining_table",
+      "relation": "under"
+    },
+    {
+      "source_index": 1,
+      "target_index": 0,
+      "source_id": "chair_1",
+      "target_id": "dining_table",
+      "relation": "left_of"
+    },
+    {
+      "source_index": 2,
+      "target_index": 0,
+      "source_id": "chair_2",
+      "target_id": "dining_table",
+      "relation": "left_of"
+    }
+  ],
+  "metadata": {
+    "original_prompt": "a dining table with a glass under and two chairs beside",
+    "plan": "To process the given scene prompt, the following internal plan will be executed:\n* The Entity Extraction Agent will identify the main objects in the scene, including the dining table, glass, and chairs.\n* The Entity Extraction Agent will also determine the total number of entities present in the scene.\n* The Attribute Extraction Agent will extract attributes from each entity, such as the material of the table, the type of glass, and the style of the chairs.\n* The Relational Inference Agent will analyze the relationships between entities, including the position of the glass under the table and the chairs beside the table.\n* The Relational Inference Agent will infer any implicit relationships, such as the table being a gathering place for the chairs.\n* The Attribute Enrichment Agent will add additional details to the extracted attributes, such as the color or shape of the entities.\n* The Size & Scale Estimation Agent will estimate the size and scale of each entity relative to the others, including the height of the table and the width of the chairs.\n* The Size & Scale Estimation Agent will also consider the standard sizes of similar entities to inform its estimates.\n* The Graph Formalization Agent will construct a formal graph representation of the scene, incorporating the extracted entities, attributes, and relationships.\n* The Graph Formalization Agent will ensure the graph is structured and consistent, ready for further processing or visualization.\n* The plan will be executed in a sequential manner, with each agent building upon the output of the previous agent to create a comprehensive representation of the scene.",
+    "room_dimensions_m": {
+      "width_m": 3.5,
+      "height_m": 2.7,
+      "depth_m": 4.0
+    },
+    "notes": "Graph formalization completed successfully."
+  },
+  "composition": {
+    "scene_id": "scene_001",
+    "output_obj": "/workspace/structuralm/temp/2025-12-10_21-42-36/compositions/scene_001.obj",
+    "output_mtl": "/workspace/structuralm/temp/2025-12-10_21-42-36/compositions/scene_001.mtl",
+    "pos_json": "/workspace/structuralm/temp/2025-12-10_21-42-36/compositions/pos.json",
+    "objects_folder": "/workspace/structuralm/temp/2025-12-10_21-42-36/dreamfusion"
+  }
+}

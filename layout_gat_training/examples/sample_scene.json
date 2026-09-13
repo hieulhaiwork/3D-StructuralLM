@@ -1,0 +1,36 @@
+{
+  "objects": [
+    {
+      "id": 0,
+      "name": "Bed_0",
+      "label": "Bed",
+      "normalized_bounding_box": [0.9876, 0.3688, 0.7973],
+      "normalized_relative_center": [0.0, 0.0, 0.0],
+      "rot": [1.0, 0.0, 0.0, 0.0]
+    },
+    {
+      "id": 1,
+      "name": "Chair_1",
+      "label": "Chair",
+      "normalized_bounding_box": [0.4435, 0.9959, 0.3451]
+    },
+    {
+      "id": 2,
+      "name": "Table_2",
+      "label": "Table",
+      "normalized_bounding_box": [0.65, 0.35, 0.55]
+    }
+  ],
+  "relationships": [
+    {
+      "obj_id1": 1,
+      "obj_id2": 0,
+      "relation": "left_of"
+    },
+    {
+      "obj_id1": 2,
+      "obj_id2": 1,
+      "relation": "in_front_of"
+    }
+  ]
+}

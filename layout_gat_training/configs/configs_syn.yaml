@@ -1,0 +1,36 @@
+# --- Data Configuration ---
+data:
+  processed_path: "data/processed_data.pt"
+  train_val_split: 0.8
+
+# --- Model Architecture ---
+model:
+  num_classes: 37  
+  embedding_dim: 64       
+  edge_in_dim: 9         
+  hidden_dim: 256
+  num_heads: 4
+
+  num_gat_layers: 4
+  room_scale: 2.0
+  dropout_rate: 0.1       
+
+# --- Training Configuration ---
+training:
+  device: "cuda"
+  epochs: 150             
+  batch_size: 64          
+  learning_rate: 0.001    
+  weight_decay: 0.0001
+  
+  # Phase 1 (Base training):
+  pos_loss_weight: 5.0       
+  rot_loss_weight: 5.0        
+  collision_loss_weight: 5.0  
+  geometric_loss_weight: 2.0  
+
+  checkpoint_path: "checkpoints/model_phase1.pt"
+  early_stopping_patience: 20
+  early_stopping_min_delta: 0.0001
+
+seed: 42

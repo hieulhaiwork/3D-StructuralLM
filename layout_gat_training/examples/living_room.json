@@ -1,0 +1,68 @@
+{
+  "objects": [
+    {
+      "id": 0,
+      "name": "Sofa_0",
+      "label": "Sofa",
+      "normalized_bounding_box": [1.2, 0.5, 0.8],
+      "normalized_relative_center": [0.0, 0.0, 0.0],
+      "rot": [1.0, 0.0, 0.0, 0.0]
+    },
+    {
+      "id": 1,
+      "name": "TV_1",
+      "label": "TV",
+      "normalized_bounding_box": [0.7, 0.4, 0.05]
+    },
+    {
+      "id": 2,
+      "name": "Table_2",
+      "label": "Table",
+      "normalized_bounding_box": [0.6, 0.3, 0.6]
+    },
+    {
+      "id": 3,
+      "name": "Carpet_3",
+      "label": "Carpet",
+      "normalized_bounding_box": [1.5, 0.01, 1.2]
+    },
+    {
+      "id": 4,
+      "name": "Floor_lamp_4",
+      "label": "Floor_lamp",
+      "normalized_bounding_box": [0.15, 0.9, 0.15]
+    }
+  ],
+  "relationships": [
+    {
+      "obj_id1": 1,
+      "obj_id2": 0,
+      "relation": "in_front_of"
+    },
+    {
+      "obj_id1": 2,
+      "obj_id2": 0,
+      "relation": "in_front_of"
+    },
+    {
+      "obj_id1": 3,
+      "obj_id2": 0,
+      "relation": "under"
+    },
+    {
+      "obj_id1": 3,
+      "obj_id2": 2,
+      "relation": "under"
+    },
+    {
+      "obj_id1": 4,
+      "obj_id2": 0,
+      "relation": "left_of"
+    },
+    {
+      "obj_id1": 1,
+      "obj_id2": 2,
+      "relation": "behind"
+    }
+  ]
+}
